@@ -28,13 +28,40 @@ void MySimulator::hardwareLoop() {
         short minor_ax = (which_ax ? abs(n_y_pulses) : abs(n_x_pulses));
         printf("%f cm in %i x pulses and %i y pulses\n", distance_cm, n_x_pulses, n_y_pulses);
         this->curr_rate = this->start_rate;
+        float new_rate;
+        float exp_term;
+        uint64_t step_start = this->clk;
+        uint64_t step_half;
+        uint64_t step_full;
+        bool half_flag = false;
         // TODO: Figure out alg for accelerating curr_rate var
         for (int i = 0; i < abs(major_ax); i++) {
+            printf("Pulse number %i rate %f clk %" PRIu64 "\n", i, this->curr_rate, this->clk);
             // TODO: Figure out alg to set pulses for minor axis
-            bool x_pul = (which_ax ? true : false);
-            bool y_pul = (which_ax ? false : true);
-            this->clk += (100000000 / this->curr_rate);
+            bool minor_pulse = false;
+            if (i < abs(minor_ax)) {
+                minor_pulse = true;
+            }
+            bool x_pul = (which_ax ? true : minor_pulse);
+            bool y_pul = (which_ax ? minor_pulse : true);
+            this->clk += (uint64_t)((float)(100000000) / (float)(this->curr_rate));
             this->setpin(this->clk, x_pul, y_pul, x_dir, y_dir, t[0]);
+            if (i < (abs(major_ax) / 2)) {
+                // R_s - (R_s - R_0)e^-4t/T
+                exp_term = 4.0 * (float)(this->clk - step_start) / (float)(this->acc_time);
+                new_rate = this->max_rate - (this->max_rate - this->start_rate)*exp(-exp_term);
+            } else {
+                if (!half_flag) {
+                    step_half = this->clk;
+                    step_full = (step_half - step_start) * 2;
+                    half_flag = true;
+                    printf("Half flag tripped\n");
+                }
+                exp_term = 4 * -((float)(this->clk - step_start) - (float)(step_full)) / (float)(this->acc_time);
+                new_rate = this->max_rate - (this->max_rate - this->start_rate)*exp(-exp_term);
+            }
+            // printf("exp term is %f new rate is %f\n", exp_term, new_rate);
+            this->curr_rate = new_rate;
         }
 
         this->step += 1;

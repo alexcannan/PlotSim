@@ -24,12 +24,10 @@ void MySimulator::hardwareLoop() {
         bool which_ax = (abs(x_ray) >= abs(y_ray) ? true : false); // x~T y~F
         bool x_dir = (x_ray >= 0 ? true : false);
         bool y_dir = (y_ray >= 0 ? true : false);
-        double distance_cm = sqrt(pow((double)(x_ray), 2.0) + pow((double)(y_ray), 2.0)) * 0.01;
         int n_x_pulses = (int)((double)(x_ray) * 0.01 / this->cm_per_pulse);
         int n_y_pulses = (int)((double)(y_ray) * 0.01 / this->cm_per_pulse);
         short major_ax = (which_ax ? abs(n_x_pulses) : abs(n_y_pulses));
         short minor_ax = (which_ax ? abs(n_y_pulses) : abs(n_x_pulses));
-        //printf("%f cm in %i x pulses and %i y pulses\n", distance_cm, n_x_pulses, n_y_pulses);
         this->curr_rate = this->start_rate;
         double new_rate;
         double exp_term;
@@ -63,8 +61,11 @@ void MySimulator::hardwareLoop() {
             bool x_pul = (which_ax ? major_pulse : minor_pulse);
             bool y_pul = (which_ax ? minor_pulse : major_pulse);
             
-            if (x_pul || y_pul) {
-                this->setpin(this->clk, x_pul, y_pul, x_dir, y_dir, t[0]);
+            if (x_pul) {
+                this->setpin(this->clk, x_pul, 0, x_dir, y_dir, t[0]);
+            }
+            if (y_pul) {
+                this->setpin(this->clk, 0, y_pul, x_dir, y_dir, t[0]);
             }
             if (i <= (total_steps / 2)) {
                 // R_s - (R_s - R_0)e^-4t/T

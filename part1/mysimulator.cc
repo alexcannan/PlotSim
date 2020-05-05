@@ -7,6 +7,7 @@ namespace brown {
 
 void MySimulator::hardwareLoop() {
     // your sketchy code
+    // NOTE: Requires MAXACC_ to be 1280000 under config.hh. Will sometimes throw an acc fault otherwise (artifact of the algorithm I used)
     if (!this->init) {
         this->N =  sizeof state / sizeof state[0]; 
         this->cm_per_pulse = this->cm_per_rev / this->pulse_per_rev;
@@ -44,8 +45,10 @@ void MySimulator::hardwareLoop() {
         printf("%d ~ x: %d dir with %i pulses; y: %d dir with %i pulses\n", which_ax, x_dir, n_x_pulses, y_dir, n_y_pulses);
         uint64_t total_steps = (uint64_t)((double)(abs(major_ax)-1) * resolution) + 1;
         uint64_t base_clk_step = uint64_t((double)(100000000) / resolution);
+        // For loop of length of major_ax times whatever resolution is set.
+        // This is done to allow minor pulses to occur between major ones.
         for (uint64_t i = 0; i < total_steps; i++) {
-            // printf("Pulse number %i rate %f clk %" PRIu64 "\n", i, this->curr_rate, this->clk);
+            // Plotting logic
             bool minor_pulse = false;
             est_min_pulse = (int)((double)(i * minor_ax) / (double)(major_ax) / resolution + 0.5);
             if (est_min_pulse > prev_min_pulse && est_min_pulse != abs(minor_ax)) {
@@ -64,6 +67,7 @@ void MySimulator::hardwareLoop() {
             if (x_pul || y_pul) {
                 this->setpin(this->clk, x_pul, y_pul, x_dir, y_dir, t[0]);
             }
+            // Acceleration logic
             if (i <= (total_steps / 2)) {
                 // R_s - (R_s - R_0)e^-4t/T
                 exp_term = 6.0 * (double)(this->clk - step_start) / (double)(this->acc_time);

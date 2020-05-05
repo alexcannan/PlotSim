@@ -35,8 +35,8 @@ private:
     short x_prev = 0;
     short y_prev = 0;
 
-    float start_rate = 500; // pulses per second
-    float max_rate = 10000; // 12.5 cm/s
+    float start_rate = 400; // pulses per second
+    float max_rate = 9000; // 12.5 cm/s
     float curr_rate;
     uint64_t acc_time = 100000000;
 

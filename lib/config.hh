@@ -19,7 +19,7 @@
 // Minimum speed without acceleration restriction [step/second]
 #define MINVEL_  1000
 // Maximum acceleration [step/second^2]
-#define MAXACC_  640000
+#define MAXACC_  1280000
 // Leadscrew ratio [step/pixel]
 #define PULPERPIX_ (1<<6)
 // Minimum position [step]
@@ -27,7 +27,7 @@
 // Maximum position [step]
 #define MAXPOS_ (BMPXRES_*+PULPERPIX_/2)
 // Time scale, 1.0 real time; >1.0 speed up
-#define TIME_SCALE 1.0
+#define TIME_SCALE 5.0
 
 /* Scope ********************************************************************/
 #define ENABLE_SCOPE 1
